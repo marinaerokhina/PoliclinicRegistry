@@ -31,51 +31,22 @@ PoliclinicRegistry/
 
 The embedded database has three tables: `Patients`, `Doctors`, and `Appointments`. Appointments reference a patient and doctor, with a unique constraint on doctor/date/time. Model classes and network types are shared by the client and server through the `common` module.
 
-## Requirements
+## Run locally
 
-- **JDK 17**
-- **Maven 3.8+**
-- A graphical desktop environment for the JavaFX client
-
-No external database server is required: H2 runs inside the server process.
-
-## Build and run
-
-All commands assume that you have cloned the repository:
+Requires **JDK 17** and **Maven**. From the repository root:
 
 ```bash
-git clone https://github.com/marinaerokhina/PoliclinicRegistry.git
-cd PoliclinicRegistry
 mvn clean install
-```
-
-### 1. Start the server
-
-From the **repository root**, run:
-
-```bash
 java -jar server/target/server-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-The default TCP port is **12345**, restricted to the local machine (`127.0.0.1`). You can optionally pass a different port as the first argument:
-
-```bash
-java -jar server/target/server-1.0-SNAPSHOT-jar-with-dependencies.jar 12346
-```
-
-The embedded database file `polyclinic_registry_db.mv.db` is created in the working directory. It is intentionally ignored by Git.
-
-### 2. Start the JavaFX client
-
-Open **another terminal** from the repository root:
+Start the JavaFX client in a **second terminal**:
 
 ```bash
 mvn -f client/pom.xml javafx:run
 ```
 
-The client defaults to `127.0.0.1:12345`. To match a non-default server port, set the client Java property `polyclinic.port` (for example, via the JavaFX plugin JVM options or an IDE run configuration).
-
-**Note:** A headless CI build can compile the project and smoke-test the server, but cannot validate the desktop GUI. A local graphical session is needed to verify JavaFX behavior and end-to-end interaction.
+The server runs locally on port **12345** and uses an embedded H2 database. No separate database installation is needed. The client requires a graphical desktop.
 
 ## Design details
 
