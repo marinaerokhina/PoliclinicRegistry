@@ -1,61 +1,59 @@
 package com.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 
 /**
- * Главный класс сервера "Регистратура поликлиники".
- * Отвечает за запуск сервера, прослушивание входящих соединений
- * и создание потоков для обработки клиентов.
+ * Local development server for the Polyclinic Registry demo.
+ * Binds to loopback so the unauthenticated serialization protocol is not
+ * accidentally exposed to other machines.
  */
 public class Server {
-    private int port;
-    private DatabaseManager dbManager;
+    public static final int DEFAULT_PORT = 12345;
+
+    private final int port;
+    private final DatabaseManager dbManager;
 
     public Server(int port) {
+        if (port < 1 || port > 65535) {
+            throw new IllegalArgumentException("Port must be between 1 and 65535");
+        }
         this.port = port;
-        dbManager = new DatabaseManager(); // Инициализация менеджера БД
+        this.dbManager = new DatabaseManager();
     }
 
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) { // Используем введенный порт
-            System.out.println("Сервер запущен и прослушивает порт " + port);
-
+        try (ServerSocket serverSocket = new ServerSocket(
+                port, 50, InetAddress.getLoopbackAddress())) {
+            System.out.println("Polyclinic Registry demo server listening on 127.0.0.1:" + port);
             while (true) {
-                Socket clientSocket = serverSocket.accept(); // Ожидание нового клиента
-                new Thread(new ClientHandler(clientSocket, dbManager)).start();
+                Socket clientSocket = serverSocket.accept();
+                Thread handlerThread = new Thread(new ClientHandler(clientSocket, dbManager));
+                handlerThread.setDaemon(true);
+                handlerThread.start();
             }
         } catch (IOException e) {
-            System.err.println("Ошибка сервера: " + e.getMessage());
+            System.err.println("Server error: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            System.out.println("Сервер остановлен.");
         }
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int serverPort = 0;
-        boolean validPort = false;
-
-        while (!validPort) {
-            System.out.print("Пожалуйста, введите номер порта для сервера (например, 12345): ");
+        int port = DEFAULT_PORT;
+        if (args.length > 1) {
+            System.err.println("Usage: java -jar server.jar [port]");
+            System.exit(2);
+        }
+        if (args.length == 1) {
             try {
-                serverPort = Integer.parseInt(scanner.nextLine());
-                if (serverPort > 0 && serverPort < 65536) { // Проверка на валидный диапазон портов
-                    validPort = true;
-                } else {
-                    System.out.println("Некорректный номер порта. Порт должен быть в диапазоне от 1 до 65535.");
-                }
+                port = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
-                System.out.println("Неверный ввод. Пожалуйста, введите целое число для номера порта.");
+                System.err.println("Port must be an integer between 1 and 65535.");
+                System.exit(2);
             }
         }
-        scanner.close();
-
-        Server server = new Server(serverPort);
-        server.start();
+        new Server(port).start();
     }
 }
