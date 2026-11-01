@@ -1,0 +1,43 @@
+name: Maven build and server smoke test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Compile and package all modules
+        run: mvn -B -ntp clean verify
+      - name: Start the demo server with a temporary database
+        shell: bash
+        run: |
+          set -euo pipefail
+          tempdir=$(mktemp -d)
+          jar="$GITHUB_WORKSPACE/server/target/server-1.0-SNAPSHOT-jar-with-dependencies.jar"
+          (cd "$tempdir" && java -jar "$jar" 12345 > server.log 2>&1) &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; rm -rf "$tempdir"' EXIT
+          for attempt in $(seq 1 30); do
+            if grep -q "listening on 127.0.0.1:12345" "$tempdir/server.log" 2>/dev/null; then
+              echo "Server started and initialized its local H2 database"
+              test -f "$tempdir/polyclinic_registry_db.mv.db"
+              java -cp "$GITHUB_WORKSPACE/server/target/test-classes:$GITHUB_WORKSPACE/common/target/classes" com.server.ConnectionSmokeTest
+              exit 0
+            fi
+            if ! kill -0 "$pid" 2>/dev/null; then
+              echo "Server exited unexpectedly:"
+              cat "$tempdir/server.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          cat "$tempdir/server.log"
+          exit 1

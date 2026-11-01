@@ -1,184 +1,100 @@
-# PoliclinicRegistry — Система регистратуры поликлиники
+# Polyclinic Registry
 
-Клиент-серверное desktop-приложение для автоматизации работы регистратуры поликлиники. Реализовано на Java с использованием JavaFX для GUI, H2 Database для хранения данных и многопоточной архитектуры для обработки клиентских запросов.
+**Java 17 · JavaFX · Maven · H2 · JDBC · TCP sockets · Multithreading**
 
-## 🎯 Цель проекта
+An educational client–server desktop application for managing a **simulated** clinic registry. A JavaFX desktop client communicates with a multithreaded Java server using serialized request/response objects; the server stores data in an embedded H2 database via JDBC.
 
-Разработать полноценное приложение для управления записями пациентов в поликлинике с:
-- Клиент-серверной архитектурой
-- Многопользовательским доступом
-- Графическим интерфейсом
-- Реляционной базой данных
-- Многопоточной обработкой запросов
+> **Academic demonstration, not medical software.** This project has no production-grade authentication, transport security, access control, or privacy safeguards. Use synthetic data only. The demo server is bound to **localhost** by default to avoid exposing the protocol over a network.
 
-## 🏗 Архитектура проекта
+## Features
 
-Проект построен по **multi-module Maven** архитектуре с разделением на три модуля:
+- Patient records: create, view, search, edit, and delete
+- Doctor directory and appointment scheduling
+- Appointment conflict checking for a doctor's date/time slot
+- Client–server request/response protocol and individual client handler threads
+- Automatically initialized local H2 database with **fictional** example records
+- Desktop UI built with JavaFX and FXML
 
-```
+## Architecture
+
+```text
 PoliclinicRegistry/
-├── common/          # Общие классы: модели, DTO, утилиты
-├── server/          # Серверная часть: обработка запросов, работа с БД
-├── client/          # Клиентская часть: JavaFX GUI
-└── pom.xml          # Корневой POM с управлением зависимостями
+├── common/              Shared data models and request/response types
+├── server/              Java TCP server, JDBC repositories and H2 database
+├── client/              JavaFX client, FXML controller and screens
+├── pom.xml              Multi-module Maven parent
+├── README.md            English documentation
+└── README_RUS.md        Original Russian documentation
 ```
 
-### **Модуль `common`**
-Содержит общие для клиента и сервера компоненты:
-- Модели данных (Patient, Doctor, Appointment и др.)
-- DTO для передачи по сети
-- Сериализация/десериализация объектов
-- Константы и утилиты
+### Data model
 
-### **Модуль `server`**
-Серверная часть приложения:
-- Приём и обработка клиентских подключений
-- Многопоточная обработка запросов
-- Работа с базой данных через JDBC
-- Управление сессиями пользователей
+The embedded database has three tables: `Patients`, `Doctors`, and `Appointments`. Appointments reference a patient and doctor, with a unique constraint on doctor/date/time. Model classes and network types are shared by the client and server through the `common` module.
 
-### **Модуль `client`**
-Клиентская часть с графическим интерфейсом:
-- JavaFX GUI с современным дизайном
-- FXML-разметка интерфейса
-- Сетевое взаимодействие с сервером
-- Валидация введённых данных
+## Requirements
 
-## 🛠 Технологии
+- **JDK 17**
+- **Maven 3.8+**
+- A graphical desktop environment for the JavaFX client
 
-### **Основные:**
-- **Java 17** — основной язык
-- **JavaFX 17.0.10** — графический интерфейс
-- **Maven** — сборка и управление зависимостями
-- **H2 Database 2.2.220** — встроенная реляционная БД
+No external database server is required: H2 runs inside the server process.
 
-### **Инструменты:**
-- **Git** — контроль версий
+## Build and run
 
-## 📋 Функциональность
+All commands assume that you have cloned the repository:
 
-### **Для регистратора:**
-- 🔍 Поиск пациентов по ФИО, номеру полиса, телефону
-- 👤 Регистрация новых пациентов
-- 📅 Создание и управление записями на приём
-- 🏥 Просмотр расписания врачей
-- ✏️ Редактирование информации о пациентах
-- 📊 Статистика по записям
-
-### **Для администратора:**
-- 👨‍⚕️ Управление списком врачей
-- 🕐 Настройка расписания приёма
-- 📈 Просмотр статистики
-- 🔐 Управление доступом
-
-## 🗄 Структура базы данных
-
-Приложение использует H2 Database со следующей схемой:
-
-```
-patients (пациенты)
-├── id, full_name, birth_date, phone, policy_number, address
-
-doctors (врачи)
-├── id, full_name, specialization, office_number
-
-appointments (записи на приём)
-├── id, patient_id, doctor_id, appointment_date, status
-```
-
-## 🚀 Запуск
-
-### **Требования:**
-- Java 17+
-- Maven 3.6+
-
-### **Сборка проекта:**
 ```bash
-# Из корневой директории
+git clone https://github.com/marinaerokhina/PoliclinicRegistry.git
+cd PoliclinicRegistry
 mvn clean install
 ```
 
-### **Запуск сервера:**
+### 1. Start the server
+
+From the **repository root**, run:
+
 ```bash
-cd server
-mvn javafx:run
+java -jar server/target/server-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-### **Запуск клиента:**
+The default TCP port is **12345**, restricted to the local machine (`127.0.0.1`). You can optionally pass a different port as the first argument:
+
 ```bash
-cd client
-mvn javafx:run
+java -jar server/target/server-1.0-SNAPSHOT-jar-with-dependencies.jar 12346
 ```
 
-### **Платформы:**
-Проект поддерживает кросс-платформенную сборку через Maven профили:
-- Windows (`-Pwindows`)
-- macOS (`-Pmac`)
-- Linux (`-Plinux`)
+The embedded database file `polyclinic_registry_db.mv.db` is created in the working directory. It is intentionally ignored by Git.
 
-## 💡 Ключевые особенности реализации
+### 2. Start the JavaFX client
 
-### **1. Многопоточность на сервере**
-Каждое клиентское подключение обрабатывается в отдельном потоке:
-```java
-ServerSocket serverSocket = new ServerSocket(PORT);
-while (true) {
-    Socket client = serverSocket.accept();
-    new ClientHandler(client).start();
-}
+Open **another terminal** from the repository root:
+
+```bash
+mvn -f client/pom.xml javafx:run
 ```
 
-### **2. Сериализация объектов**
-Передача данных между клиентом и сервером через `ObjectOutputStream`/`ObjectInputStream`:
-```java
-// Отправка запроса
-ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-out.writeObject(request);
+The client defaults to `127.0.0.1:12345`. To match a non-default server port, set the client Java property `polyclinic.port` (for example, via the JavaFX plugin JVM options or an IDE run configuration).
 
-// Приём ответа
-ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-Response response = (Response) in.readObject();
-```
+**Note:** A headless CI build can compile the project and smoke-test the server, but cannot validate the desktop GUI. A local graphical session is needed to verify JavaFX behavior and end-to-end interaction.
 
-### **3. Работа с БД через JDBC**
-```java
-String query = "SELECT * FROM patients WHERE full_name LIKE ?";
-PreparedStatement stmt = connection.prepareStatement(query);
-stmt.setString(1, "%" + name + "%");
-ResultSet rs = stmt.executeQuery();
-```
+## Design details
 
-### **4. FXML + Controller**
-Разделение разметки и логики:
-- `view.fxml` — описание интерфейса
-- `ViewController.java` — обработка событий
+- The `common` module defines serializable `Request` and `Response` objects and domain models.
+- The server accepts TCP connections on loopback and handles each client in its own thread.
+- JDBC `PreparedStatement` is used for database updates and searches.
+- H2 tables are initialized on the first run and seeded with fictional demonstration records.
+- Appointment uniqueness is enforced by a database constraint.
 
-## 📚 Чему научилась
+## Known limitations
 
-✅ Клиент-серверная архитектура  
-✅ Многопоточное программирование  
-✅ Работа с реляционными БД через JDBC  
-✅ Создание GUI на JavaFX  
-✅ FXML-разметка и привязка данных  
-✅ Maven multi-module проекты  
-✅ Сериализация объектов  
-✅ Кросс-платформенная сборка  
+- **Do not use with real patient information.** Authentication in the demo is not suitable for protecting medical data; object serialization is not hardened against untrusted clients.
+- No TLS or network-facing deployment is supported.
+- Some UI features and full client–server workflows are **not yet covered by automated integration tests**.
+- The database and compiled output belong on a developer's machine; neither should be committed.
+- Future improvements: automated integration tests, proper authentication/authorization, a safer API protocol, improved error handling, and a reproducible GUI test environment.
 
-## 🔮 Возможные улучшения
+## Project context
 
-- [ ] REST API вместо сокетного соединения
-- [ ] Переход на PostgreSQL/MySQL
-- [ ] Авторизация пользователей с ролями
-- [ ] Экспорт отчётов в PDF/Excel
-- [ ] Unit-тесты (JUnit 5)
-- [ ] Интеграционные тесты
-- [ ] Docker-контейнеризация
-- [ ] CI/CD через GitHub Actions
+Built as a university project in a programming technologies course. The original Russian-language description is preserved in [README_RUS.md](README_RUS.md).
 
-## 📝 Примечание
-
-Проект разработан как учебная работа в университете по предмету "Технологии и Методы Программирования", 4 семестр. Некоторые возможности могут быть ограничены или требовать доработки для production-использования.
-
----
-
-**Автор:** Марина Ерохина  
+**Author:** Marina Erokhina
