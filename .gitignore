@@ -1,0 +1,15 @@
+# Maven / IDE generated files
+target/
+**/target/
+*.iml
+.idea/
+.classpath
+.project
+.settings/
+# Local embedded H2 databases (potentially sensitive data)
+*.mv.db
+*.trace.db
+*.lock.db
+# OS
+.DS_Store
+Thumbs.db
