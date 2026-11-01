@@ -40,7 +40,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>com.client.Server</mainClass> </manifest>
+              <mainClass>com.server.Server</mainClass> </manifest>
           </archive>
         </configuration>
       </plugin>
@@ -50,7 +50,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.client.Server</mainClass> </manifest>
+              <mainClass>com.server.Server</mainClass> </manifest>
           </archive>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
