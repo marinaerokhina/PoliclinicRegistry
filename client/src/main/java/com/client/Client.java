@@ -13,8 +13,9 @@ import java.net.Socket;
  * Отправляет запросы и получает ответы.
  */
 public class Client {
-    private static final String SERVER_ADDRESS = "localhost"; // Адрес сервера
-    private static final int SERVER_PORT = 12345; // Порт сервера
+    // The demo server binds only to loopback. Override port with -Dpolyclinic.port=...
+    private static final String SERVER_ADDRESS = "127.0.0.1";
+    private static final int SERVER_PORT = Integer.getInteger("polyclinic.port", 12345);
 
     private Socket socket;
     private ObjectOutputStream out;
