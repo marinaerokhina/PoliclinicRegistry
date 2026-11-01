@@ -29,6 +29,7 @@ jobs:
             if grep -q "listening on 127.0.0.1:12345" "$tempdir/server.log" 2>/dev/null; then
               echo "Server started and initialized its local H2 database"
               test -f "$tempdir/polyclinic_registry_db.mv.db"
+              java -cp "$GITHUB_WORKSPACE/server/target/test-classes:$GITHUB_WORKSPACE/common/target/classes" com.server.ConnectionSmokeTest
               exit 0
             fi
             if ! kill -0 "$pid" 2>/dev/null; then
